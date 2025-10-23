@@ -20,10 +20,20 @@ namespace SignotecPadWindowsService
         // Abre el dispositivo si no está abierto
         public void Open(int index = 0, bool eraseDisplay = true)
         {
-            if (!_isOpened)
+            if (_isOpened) return;
+
+            try
             {
                 _pad.DeviceOpen(index, eraseDisplay);
                 _isOpened = true;
+            }
+            catch (Exception ex)
+            {
+                _isOpened = false;
+                // Registrar en el Visor de eventos sin interrumpir la instalación o ejecución
+                System.Diagnostics.EventLog.WriteEntry("SignotecPadService",
+                    $"[AVISO] No se pudo abrir el dispositivo Signotec. Puede que no esté conectado. {ex.Message}",
+                    System.Diagnostics.EventLogEntryType.Warning);
             }
         }
 
