@@ -3,6 +3,8 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+
 
 namespace SignotecPadWindowsService
 {
@@ -30,34 +32,34 @@ namespace SignotecPadWindowsService
                         {
                             case "/signature/start":
                                 padManager.StartSignature();
-                                Respond(context, "Captura iniciada");
+                                RespondJson(context, new { message = "Captura iniciada" });
                                 break;
 
                             case "/signature/capture":
                                 string base64 = padManager.StopAndGetSignatureBase64(600, 200);
-                                Respond(context, base64);
+                                RespondJson(context, new { signatureImageBase64 = base64 });
                                 break;
 
                             case "/signature/clear":
                                 padManager.ClearSignature();
-                                Respond(context, "Firma eliminada");
+                                RespondJson(context, new { message = "Firma eliminada" });
                                 break;
 
                             case "/signature/close":
                                 padManager.Close();
-                                Respond(context, "Dispositivo cerrado");
+                                RespondJson(context, new { message = "Dispositivo cerrado" });
                                 break;
 
                             default:
                                 context.Response.StatusCode = 404;
-                                Respond(context, "Endpoint no encontrado");
+                                RespondJson(context, new { message = "Endpoint no encontrado" });
                                 break;
                         }
                     }
                     catch (Exception ex)
                     {
                         context.Response.StatusCode = 500;
-                        Respond(context, "Error: " + ex.Message);
+                        RespondJson(context, new { error = ex.Message });
                     }
                     finally
                     {
@@ -69,12 +71,16 @@ namespace SignotecPadWindowsService
             listener.Stop();
         }
 
-        private static void Respond(HttpListenerContext context, string message)
+        private static void RespondJson(HttpListenerContext context, object data)
         {
-            byte[] buffer = Encoding.UTF8.GetBytes(message);
-            context.Response.ContentType = "text/plain";
+            string json = JsonConvert.SerializeObject(data);
+            byte[] buffer = Encoding.UTF8.GetBytes(json);
+
+            context.Response.ContentType = "application/json";
             context.Response.ContentLength64 = buffer.Length;
             context.Response.OutputStream.Write(buffer, 0, buffer.Length);
         }
+
+
     }
 }
