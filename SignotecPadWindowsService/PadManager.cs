@@ -55,13 +55,16 @@ namespace SignotecPadWindowsService
         }
 
         // Detener captura y obtener Base64
-        public string StopAndGetSignatureBase64(int width, int height)
+        // Detener captura y obtener Base64 (imagen + datos RSA)
+        public (string imageBase64, string rsaSignDataBase64) StopAndGetSignatureBase64(int width, int height)
         {
-            if (!_isCapturing) throw new InvalidOperationException("No hay captura iniciada.");
+            if (!_isCapturing)
+                throw new InvalidOperationException("No hay captura iniciada.");
 
             _pad.SignatureStop();
             _isCapturing = false;
 
+            // ✅ Captura la imagen de la firma
             var bmp = _pad.SignatureSaveAsStreamEx(
                 resolution: 300,
                 width: width,
@@ -71,12 +74,21 @@ namespace SignotecPadWindowsService
                 options: SignatureImageFlag.DontCrop | SignatureImageFlag.BackImage
             );
 
+            string imageBase64;
             using (var ms = new MemoryStream())
             {
                 bmp.Save(ms, ImageFormat.Png);
-                return Convert.ToBase64String(ms.ToArray());
+                imageBase64 = Convert.ToBase64String(ms.ToArray());
             }
+
+            // ✅ Captura los datos RSA de la firma
+            byte[] rsaData = _pad.RSAGetSignData(SignDataGetFlag.None);
+            string rsaSignDataBase64 = Convert.ToBase64String(rsaData);
+
+            // ✅ Devuelve ambos en una tupla
+            return (imageBase64, rsaSignDataBase64);
         }
+
 
         // Limpiar firma
         public void ClearSignature()

@@ -36,8 +36,15 @@ namespace SignotecPadWindowsService
                                 break;
 
                             case "/signature/capture":
-                                string base64 = padManager.StopAndGetSignatureBase64(600, 200);
-                                RespondJson(context, new { signatureImageBase64 = base64 });
+                                var result = padManager.StopAndGetSignatureBase64(600, 200);
+                                string imageBase64 = result.imageBase64;
+                                string rsaBase64 = result.rsaSignDataBase64;
+                                RespondJson(context, new
+                                {
+                                    signatureImageBase64 = result.imageBase64,
+                                    rsaSignDataBase64 = result.rsaSignDataBase64
+                                });
+
                                 break;
 
                             case "/signature/clear":
