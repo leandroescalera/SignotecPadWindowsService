@@ -80,7 +80,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AgentLocalBridge.cs" />
     <Compile Include="LocalHttpServer.cs" />
     <Compile Include="PadManager.cs" />
     <Compile Include="Program.cs" />
